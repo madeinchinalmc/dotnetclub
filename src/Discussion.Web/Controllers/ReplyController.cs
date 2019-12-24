@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Logging;
 using Discussion.Core.Models;
@@ -25,7 +24,7 @@ namespace Discussion.Web.Controllers
         private readonly ILogger<ReplyController> _logger;
         private readonly IClock _clock;
 
-        public ReplyController(IRepository<Reply> replyRepo, 
+        public ReplyController(IRepository<Reply> replyRepo,
             IRepository<Topic> topicRepo,
             SiteSettings siteSettings, ILogger<ReplyController> logger, IClock clock)
         {
@@ -45,16 +44,18 @@ namespace Discussion.Web.Controllers
 
             if (!_siteSettings.CanAddNewReplies())
             {
-                _logger.LogWarning("添加回复失败：{@ReplyAttempt}", new {currentUser.UserName, Result= new FeatureDisabledException().Message});
+                _logger.LogWarning("添加回复失败：{@ReplyAttempt}",
+                    new {currentUser.UserName, Result = new FeatureDisabledException().Message});
                 return BadRequest();
             }
 
             if (_siteSettings.RequireUserPhoneNumberVerified && !currentUser.PhoneNumberId.HasValue)
             {
-                _logger.LogWarning("添加回复失败：{@ReplyAttempt}", new {currentUser.UserName, Result = new UserVerificationRequiredException().Message});
+                _logger.LogWarning("添加回复失败：{@ReplyAttempt}",
+                    new {currentUser.UserName, Result = new UserVerificationRequiredException().Message});
                 return BadRequest();
             }
-            
+
             var topic = _topicRepo.Get(topicId);
             if (topic == null)
             {
@@ -76,14 +77,19 @@ namespace Discussion.Web.Controllers
                 Content = replyCreationModel.Content
             };
             _replyRepo.Save(reply);
-            
+
             // ReSharper disable once PossibleNullReferenceException
             topic.LastRepliedAt = _clock.Now.UtcDateTime;
             topic.LastRepliedByUser = currentUser;
             topic.ReplyCount += 1;
             _topicRepo.Update(topic);
-            
-            _logger.LogInformation("添加回复成功：{@ReplyAttempt}", new {TopicId = topic.Id, topic.ReplyCount, ReplyId = reply.Id, UserId = currentUser.Id, currentUser.UserName});
+
+            _logger.LogInformation("添加回复成功：{@ReplyAttempt}",
+                new
+                {
+                    TopicId = topic.Id, topic.ReplyCount, ReplyId = reply.Id, UserId = currentUser.Id,
+                    currentUser.UserName
+                });
             return NoContent();
         }
 
@@ -94,18 +100,20 @@ namespace Discussion.Web.Controllers
         {
             var user = HttpContext.DiscussionUser();
             var replies = _replyRepo.All()
-                .Include(t => t.CreatedByUser)
                 .Where(t => t.CreatedByUser.Id == user.Id)
+                .Include(t => t.CreatedByUser)
+                .OrderBy(c => c.CreatedAtUtc)
                 .Select(entity => new ReplyProfileViewModel
                 {
                     CreatedByUser = entity.CreatedByUser,
                     TopicId = entity.TopicId,
+                    ReplyId = entity.Id,
                     ReplyContent = entity.Content,
                     ReplyCreateTime = entity.CreatedAtUtc
                 }).Page(PageSize, page);
             return View(replies);
         }
-        
+
         [Route("api/topics/{topicId}/replies/{replyId}")]
         [HttpDelete]
         public ApiResponse Delete(int topicId, int replyId)
@@ -115,13 +123,13 @@ namespace Discussion.Web.Controllers
             {
                 return ApiResponse.NoContent(HttpStatusCode.NotFound);
             }
-            
+
             var reply = _replyRepo.All().FirstOrDefault(r => r.Id == replyId && r.TopicId == topicId);
             if (reply == null)
             {
-                return ApiResponse.NoContent(HttpStatusCode.NotFound); 
+                return ApiResponse.NoContent(HttpStatusCode.NotFound);
             }
-            
+
             _replyRepo.Delete(reply);
 
 
@@ -130,9 +138,9 @@ namespace Discussion.Web.Controllers
                 .Where(r => r.TopicId == topicId)
                 .OrderByDescending(r => r.CreatedAtUtc)
                 .FirstOrDefault();
-                
+
             topic.LastRepliedBy = latestReply?.CreatedBy;
-            topic.LastRepliedAt = latestReply?.CreatedAtUtc;            
+            topic.LastRepliedAt = latestReply?.CreatedAtUtc;
             _topicRepo.Update(topic);
             return ApiResponse.NoContent();
         }

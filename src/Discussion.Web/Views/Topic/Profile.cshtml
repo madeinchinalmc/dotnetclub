@@ -23,16 +23,10 @@
                     <a class="topic-title" href="@Url.Action("Index", "Topic", new {id = topicItem.Id})" title="@topicItem.Title">
                         @topicItem.Title
                     </a>
-                    <div>
-                        <span class="meta-item created-at">
-                            发布于 <span class="created-at-time" data-created-at="@Html.Timestamp(topicItem.CreateTime)"></span>
-                        </span>
-                        <span class="meta-item view-count">
-                            @topicItem.ViewCount 次浏览
-                        </span>
-                        <span class="meta-item view-count">
-                            @topicItem.ReplyCount 次回复
-                        </span>
+                    <div class="topic-meta-secondary pull-right hidden-xs">
+                        <span class="last-replied-at">发布于 @topicItem.CreateTime</span>
+                        <span class="last-replied-at">@topicItem.ViewCount 次浏览</span>
+                        <span class="last-replied-at">@topicItem.ReplyCount 次回复</span>
                     </div>
                 </div>
             }
