@@ -6,6 +6,11 @@ namespace Discussion.Web.Services.TopicManagement
     public interface ITopicService
     {
         TopicViewModel ViewTopic(int topicId);
+        
         Topic CreateTopic(TopicCreationModel model);
+        
+        TopicUpdateViewModel ViewUpdateTopic(int topicId);
+        
+        void UpdateTopic(TopicUpdateViewModel model);
     }
 }

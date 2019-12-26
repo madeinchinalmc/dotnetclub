@@ -199,34 +199,75 @@ namespace Discussion.Web.Controllers
             return View(tpoics);
         }
 
-        [Route("api/topics/{id}")]
-        [HttpDelete]
-        public ApiResponse Delete(int id)
+        [Route("/topics/delete/{id}")]
+        [Authorize]
+        [HttpPost]
+        public IActionResult Delete(int id)
         {
-            //todo  user validate
-            //var user = HttpContext.DiscussionUser();
+            var user = HttpContext.DiscussionUser();
             var topic = _topicRepo.Get(id);
-            if (topic == null)
+            if (topic == null || topic.CreatedBy != user.Id)
             {
-                return ApiResponse.NoContent(HttpStatusCode.NotFound);
+                return BadRequest();
+                //return ApiResponse.NoContent(HttpStatusCode.NotFound);
             }
 
-            var replies = _replyRepo.All().Where(r => r.Id == id).ToList();
-            if (replies.Count < 5 && (replies.Select(t => t.CreatedByUser.Id).Distinct().Count() < 5))
+            var repliyCount = _replyRepo.All().Count(r => r.TopicId == id);
+            var repliyUserCount =
+                _replyRepo.All().Where(r => r.TopicId == id).Select(r => r.CreatedByUser.Id).Distinct().Count();
+            if (repliyCount < 5 && repliyUserCount < 5)
             {
                 _topicRepo.Delete(topic);
+                var replies = _replyRepo.All().Where(r => r.TopicId == id).ToList();
                 replies.ForEach(_replyRepo.Delete);
-                return ApiResponse.NoContent();
+                //return ApiResponse.NoContent();
+                return RedirectToAction("Profile",null);
             }
-
-            return ApiResponse.Error("不符合删除条件");
+            //return ApiResponse.Error("不符合删除条件");
+            return BadRequest();
         }
 
-        [Route("api/topics/{id}")]
-        [HttpPatch]
-        public ApiResponse Update(int id)
+        [Route("/topics/update/{id}")]
+        [Authorize]
+        [HttpGet]
+        public ActionResult Update(int id)
         {
-            return ApiResponse.NoContent();
+            var showModel = _topicService.ViewUpdateTopic(id);
+            if (showModel == null)
+            {
+                //不符合编辑条件
+                return NotFound();
+            }
+            return View(showModel);
         }
+
+        [Authorize]
+        [HttpGet]
+        [Route("/topics/update")]
+        public ActionResult UpdateTopic(TopicUpdateViewModel model)
+        {
+            var user = HttpContext.DiscussionUser();
+            var userName = user.UserName;
+            if (!ModelState.IsValid)
+            {
+                _logger.LogModelState("更新话题", ModelState, user.Id, userName);
+                return BadRequest();
+            }
+            try
+            {
+                _topicService.UpdateTopic(model);
+                _logger.LogInformation("更新话题成功：{@NewTopicAttempt}",
+                    new {model.Title, model.Id, UserId = user.Id, user.UserName});
+                // ReSharper disable once Mvc.ActionNotResolved
+                return RedirectToAction("Index", new {model.Id});
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning("更新话题失败：{@NewTopicAttempt}",
+                    new {UserId = user.Id, user.UserName, Result = ex.Message});
+                return BadRequest();
+            }
+        }
+        
     }
 }

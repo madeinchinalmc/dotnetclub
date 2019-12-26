@@ -20,14 +20,25 @@
                     <div class="topic-meta-primary pull-left">
                         <span class="topic-type">@Html.DescribeTopicType(topicItem.Type)</span>
                     </div>
-                    <a class="topic-title" href="@Url.Action("Index", "Topic", new {id = topicItem.Id})" title="@topicItem.Title">
-                        @topicItem.Title
-                    </a>
+                    <div style="display: inline-block;width: 40%"  >
+                        <a class="topic-title" href="@Url.Action("Index", "Topic", new {id = topicItem.Id})" title="@topicItem.Title">
+                            @topicItem.Title
+                        </a>
+                        <input type="hidden" id="topicId" value="@topicItem.Id"/>
+
+                        <a class="topic-title" href="@Url.Action("Update", "Topic", new {id = topicItem.Id})" title="@topicItem.Title">
+                            更新
+                        </a>
+                        <form asp-action="Delete" asp-controller="Topic" method="post" asp-route-id="@topicItem.Id" style="display: inline-block">
+                            <button type="submit">删除</button>
+                        </form>
+                    </div>
                     <div class="topic-meta-secondary pull-right hidden-xs">
                         <span class="last-replied-at">发布于 @topicItem.CreateTime</span>
                         <span class="last-replied-at">@topicItem.ViewCount 次浏览</span>
                         <span class="last-replied-at">@topicItem.ReplyCount 次回复</span>
                     </div>
+                    @* <button type="submit" onclick="return delConfirm()">删除</button> *@
                 </div>
             }
 
@@ -55,3 +66,32 @@
 
     </div>
 </div>
+
+@section Tail{
+    <script>
+        function delConfirm(){
+           var isDel = confirm("确定要删除吗？");
+           if(isDel){
+               var id = $("#topicId").val();
+               var params = {"id": id };
+                $.ajax({
+                    url:"/topics/update/"+ id,
+                    type:"post",
+                    data:params,
+                    success: function(result) {
+                        if(result.code === '200'){
+                            alert('删除成功');
+                            window.location.reload()  //刷新页面
+                        }
+                        else if(result.code === '404'){
+                            alert('没有此话题');
+                        }
+                        else{
+                            alert(result.errorMessage);
+                        }
+                    }
+                })  
+           }
+        }
+    </script>
+}
