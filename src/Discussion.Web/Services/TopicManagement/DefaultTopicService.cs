@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
@@ -56,6 +57,16 @@ namespace Discussion.Web.Services.TopicManagement
             return  TopicViewModel.CreateFrom(topic, replies);
         }
 
+        public TopicUpdateViewModel ViewUpdateTopic(int topicId)
+        {
+            var topic = _topicRepo.Get(topicId);
+            if (topic == null || topic.ReplyCount > 0 || (DateTime.Now - topic.CreatedAtUtc).TotalDays >=5)
+            {
+                return null;
+            }
+            return TopicUpdateViewModel.CreateFrom(topic);
+        }
+
         public Topic CreateTopic(TopicCreationModel model)
         {
             if (!_settings.CanCreateNewTopics())
@@ -81,6 +92,31 @@ namespace Discussion.Web.Services.TopicManagement
             _topicRepo.Save(topic);
 
             return topic;
+        }
+
+        public void UpdateTopic(TopicUpdateViewModel model)
+        {
+            if (!_settings.CanCreateNewTopics())
+            {
+                throw new FeatureDisabledException();
+            }
+            
+            var user = _currentUser.DiscussionUser;
+            if (_settings.RequireUserPhoneNumberVerified && !user.PhoneNumberId.HasValue)
+            {
+                throw new UserVerificationRequiredException();
+            }
+
+            // ReSharper disable once PossibleInvalidOperationException
+            var topic = new Topic
+            {
+                Title = model.Title,
+                Content = model.Content,
+                Type = model.Type,
+                CreatedBy = user.Id,
+                CreatedAtUtc = _clock.Now.UtcDateTime
+            };
+            _topicRepo.Update(topic);
         }
     }
 }

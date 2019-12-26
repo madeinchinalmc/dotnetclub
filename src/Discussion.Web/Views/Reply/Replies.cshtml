@@ -16,7 +16,6 @@
             <div class="panel-heading">
                 共有 @Model.Paging.ItemCount 条回复
             </div>
-
             <div class="panel-body">
                 @foreach (var reply in Model.Items)
                 {
@@ -34,8 +33,11 @@
                         <div class="reply-content">
                             <div class="reply-content-body">@Html.RenderMarkdown(reply.ReplyContent, maxHeadingLevel: 3)</div>
                             <div class="reply-content-related">
-                                回复于 <span class="replied-at" data-replied-at="@Html.Timestamp(reply.ReplyCreateTime)"></span>
+                                <span class="replied-at">回复于 @reply.ReplyCreateTime</span>
                             </div>
+                            <a class="topic-title" href="@Url.Action("Index", "Topic", new {id = reply.TopicId})" title="跳转至原文">
+                                原文地址
+                            </a>
                         </div>
                     </div>
                 }

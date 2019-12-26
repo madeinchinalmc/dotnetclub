@@ -71,6 +71,8 @@
                                 <li class="username-item">你好，<span class="username" title="@Context.DiscussionUser().DisplayName">@Context.DiscussionUser().DisplayName</span></li>
                                 <li role="separator" class="divider"></li>
                                 <li>@Html.ActionLink("设置", "Settings", "User", null, new { @class = "user-settings-link" })</li>
+                                <li>@Html.ActionLink("我的话题", "Profile", "Topic", null, new { @class = "user-settings-link" })</li>
+                                <li>@Html.ActionLink("我的回复", "Profile", "Topic", null, new { @class = "user-settings-link" })</li>
                                 <li>
                                     <form class="signout-form" asp-action="DoSignOut" asp-controller="Account" method="post">
                                         <button>注销</button>
@@ -124,6 +126,8 @@
                                 <li class="username-item">你好，<span class="username" title="@Context.DiscussionUser().DisplayName">@Context.DiscussionUser().DisplayName</span></li>
                                 <li role="separator" class="divider"></li>
                                 <li>@Html.ActionLink("设置", "Settings", "User", null, new { @class = "user-settings-link" })</li>
+                                <li>@Html.ActionLink("我的话题", "Profile", "Topic", null, new { @class = "user-settings-link" })</li>
+                                <li>@Html.ActionLink("我的回复", "Replies", "Reply", null, new { @class = "user-settings-link" })</li>
                                 <li>
                                     <form class="signout-form" asp-action="DoSignOut" asp-controller="Account" method="post">
                                         <button>注销</button>

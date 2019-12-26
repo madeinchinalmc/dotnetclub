@@ -1,0 +1,61 @@
+﻿@using Discussion.Core.Models
+@inject SiteSettings SiteSettings
+@model TopicUpdateViewModel
+@{
+    ViewData["Title"] = "编辑主题";
+}
+
+@if (SiteSettings.CanCreateNewTopics())
+{
+    <div class="row clearfix">
+        <h3>编辑话题</h3>
+        <div class="topic-title-container">
+            <input id="new-topic-title" type="text" placeholder="标题" autofocus maxlength="120" asp-for="Title" />
+        </div>
+        <div class="topic-content-container">
+            <div id="content-editor"></div>
+        </div>
+    </div>
+
+    if (true)
+    {
+        <div class="row topic-import-chaty-section hide clearfix">
+            <h4>最近的微信对话</h4>
+            <ul class="importable-chats"></ul>
+            <input type="hidden" name="import-chat-id" value="" />
+        </div>
+    }
+
+    <div class="row topic-submit-section clearfix">
+        <button id="submit-create" class="btn btn-default submit-create-btn">更新</button>
+        <div id="topic-type-dropdown" class="dropdown topic-type-dropdown">
+            <div class="dropdown-toggle topic-type-btn" data-toggle="dropdown" aria-haspopup="true">
+                <span class="selected-type">话题类别</span>
+                <span class="caret"></span>
+            </div>
+            <ul class="dropdown-menu">
+                @foreach (var item in Html.GetEnumSelectList<TopicType>())
+                {
+                    <li class="topic-type-item"><a href="javascript:;" attr-value="@item.Value">@item.Text</a></li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row clearfix">
+        <h3>当前暂不允许创建新的话题，请稍后再试。</h3>
+    </div>
+}
+
+@section Tail{
+    <script>
+        window.loadChatySessionListUrl = '@Url.Action("GetWeChatSessionList")';
+        window.createTopicUrl = "@Url.Action("CreateTopic")";
+        window.createWithImportingUrl = '@Url.Action("ImportFromWeChat")';
+        window.uploadUrl = '@Url.Action("UploadFile", "Common", new {category = "topic"})';
+
+        window.DiscussionApp.mdeditor.setupEditor( @(true ? "true" : "false") );
+    </script>
+}
