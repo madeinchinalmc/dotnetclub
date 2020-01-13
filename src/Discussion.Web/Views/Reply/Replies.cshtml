@@ -38,6 +38,12 @@
                             <a class="topic-title" href="@Url.Action("Index", "Topic", new {id = reply.TopicId})" title="跳转至原文">
                                 原文地址
                             </a>
+                            <form asp-action="Delete" asp-controller="Reply" method="post" asp-route-topicId="@reply.TopicId" asp-route-replyId="@reply.ReplyId" style="display: inline-block">
+                                <button type="submit">删除</button>
+                            </form>
+                            <a class="topic-title" href="@Url.Action("Update", "Reply", new {id = @reply.ReplyId})" title="更新回复">
+                                更新
+                            </a>
                         </div>
                     </div>
                 }

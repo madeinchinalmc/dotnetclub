@@ -115,19 +115,22 @@ namespace Discussion.Web.Controllers
         }
 
         [Route("api/topics/{topicId}/replies/{replyId}")]
-        [HttpDelete]
-        public ApiResponse Delete(int topicId, int replyId)
+        [Authorize]
+        [HttpPost]
+        public ActionResult Delete(int topicId, int replyId)
         {
             var topic = _topicRepo.Get(topicId);
             if (topic == null)
             {
-                return ApiResponse.NoContent(HttpStatusCode.NotFound);
+                return BadRequest();
+                //return ApiResponse.NoContent(HttpStatusCode.NotFound);
             }
 
             var reply = _replyRepo.All().FirstOrDefault(r => r.Id == replyId && r.TopicId == topicId);
             if (reply == null)
             {
-                return ApiResponse.NoContent(HttpStatusCode.NotFound);
+                return BadRequest();
+                //return ApiResponse.NoContent(HttpStatusCode.NotFound);
             }
 
             _replyRepo.Delete(reply);
@@ -142,14 +145,15 @@ namespace Discussion.Web.Controllers
             topic.LastRepliedBy = latestReply?.CreatedBy;
             topic.LastRepliedAt = latestReply?.CreatedAtUtc;
             _topicRepo.Update(topic);
-            return ApiResponse.NoContent();
+            return RedirectToAction("Replies",null);
         }
 
-        [Route("api/topics/{id}")]
-        [HttpPatch]
-        public ApiResponse Update(int topicId, int replyId)
+        [Route("api/replies/{id}")]
+        [Authorize]
+        [HttpGet]
+        public ActionResult Update(int replyId)
         {
-            return ApiResponse.NoContent();
+            return View();
         }
     }
 }
